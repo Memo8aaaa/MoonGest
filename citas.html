@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moon Gest — Gestionar Citas</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --brown-dark: #2d1f14;
+  --brown-mid: #7a5535;
+  --brown-main: #a07850;
+  --brown-light: #c9a98a;
+  --cream: #f9f5f0;
+  --white: #ffffff;
+  --border: #ede5dc;
+  --text-main: #2d1f14;
+  --text-muted: #9e8878;
+  --text-hint: #b8a898;
+  --badge-red-bg: #fdecea; --badge-red-text: #c0614e;
+  --badge-yellow-bg: #fef3e2; --badge-yellow-text: #b07820;
+  --badge-green-bg: #e8f5ee; --badge-green-text: #3a8a5c;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--text-main);
+  min-height: 100vh;
+}
+
+/* ── APP SHELL ── */
+.app { display: flex; min-height: 100vh; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 210px;
+  background: var(--brown-dark);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 0;
+  flex-shrink: 0;
+  position: fixed;
+  height: 100vh;
+  top: 0; left: 0;
+  z-index: 100;
+}
+.sidebar-logo {
+  padding: 0 20px 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-logo h2 {
+  font-family: 'Cormorant Garamond', serif;
+  color: #e8d5c0;
+  font-size: 17px;
+  font-weight: 300;
+  line-height: 1.3;
+}
+.sidebar-logo p { color: rgba(255,255,255,0.3); font-size: 10px; letter-spacing: 1px; margin-top: 4px; }
+.nav { flex: 1; padding: 16px 0; }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.45);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s;
+}
+.nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+.nav-item.active { background: rgba(160,120,80,0.25); color: #e8c99a; border-left: 3px solid var(--brown-main); }
+.nav-icon { font-size: 15px; width: 20px; text-align: center; }
+.sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.08); }
+.sidebar-footer span { font-size: 11px; color: rgba(255,255,255,0.3); }
+.btn-cerrar-sesion {
+  display: flex; align-items: center; gap: 8px;
+  color: rgba(255,255,255,0.4); font-size: 12px;
+  cursor: pointer; margin-top: 8px;
+  background: none; border: none; font-family: 'DM Sans', sans-serif;
+  padding: 0;
+}
+.btn-cerrar-sesion:hover { color: rgba(255,255,255,0.7); }
+
+/* ── MAIN CONTENT ── */
+.main { flex: 1; margin-left: 210px; display: flex; flex-direction: column; min-height: 100vh; }
+.topbar {
+  background: var(--white);
+  padding: 18px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 50;
+}
+.topbar h1 { font-family: 'Cormorant Garamond', serif; font-size: 26px; color: var(--text-main); font-weight: 400; }
+.topbar-actions { display: flex; gap: 10px; align-items: center; }
+.content { flex: 1; padding: 28px 32px; }
+
+/* ── BUTTONS ── */
+.btn {
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s;
+}
+.btn:hover { opacity: 0.88; }
+.btn-primary { background: var(--brown-main); color: #fff; }
+.btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--brown-mid); }
+.btn-sm { padding: 7px 14px; font-size: 12px; border-radius: 6px; }
+.btn-danger { background: #fdecea; color: #c0614e; border: 1.5px solid #f5c4c0; }
+
+/* ── FORM FIELDS ── */
+.field { margin-bottom: 18px; }
+.field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--brown-mid);
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+}
+.field input, .field select, .field textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid #e8ddd5;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text-main);
+  background: #fdf9f6;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--brown-main); background: #fff; }
+.field input::placeholder, .field textarea::placeholder { color: #c5b5a8; }
+.field textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+.field-row { display: flex; gap: 16px; }
+.field-row .field { flex: 1; }
+
+/* ── BADGES ── */
+.badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.badge-sin { background: var(--badge-red-bg); color: var(--badge-red-text); }
+.badge-anticipo { background: var(--badge-yellow-bg); color: var(--badge-yellow-text); }
+.badge-pagado { background: var(--badge-green-bg); color: var(--badge-green-text); }
+
+/* ── CARDS ── */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(45,31,20,0.4);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 28px 32px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 16px 60px rgba(0,0,0,0.15);
+  animation: fadeUp 0.2s ease;
+}
+@keyframes fadeUp { from { transform: translateY(16px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+.modal-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--text-main); margin-bottom: 4px; }
+.modal-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+.modal-actions .btn { flex: 1; padding: 12px; }
+
+/* ── ALERTS ── */
+.alert {
+  padding: 11px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.alert-warning { background: #fef3e2; border: 1px solid #f5d9a0; color: #7a5010; }
+.alert-error { background: var(--badge-red-bg); border: 1px solid #f5c4c0; color: #8a2010; }
+.alert-success { background: var(--badge-green-bg); border: 1px solid #b0dfc0; color: #1a6040; }
+
+/* ── SECTION LABEL ── */
+.section-label {
+  font-size: 11px;
+  color: var(--text-hint);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+/* ── INFO BOX ── */
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 12px; margin-bottom: 20px; }
+.info-box { background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; }
+.info-box .ib-label { font-size: 10px; color: var(--text-hint); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.info-box .ib-value { font-size: 14px; color: var(--text-main); font-weight: 500; }
+
+  </style>
+  <style>
+    .content { padding: 0; display: flex; flex: 1; overflow: hidden; height: calc(100vh - 66px); }
+    .cal-panel {
+      width: 270px; flex-shrink: 0;
+      background: var(--white); border-right: 1px solid var(--border);
+      padding: 22px 20px; overflow-y: auto;
+    }
+    .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .cal-header span { font-size: 14px; font-weight: 500; color: var(--text-main); }
+    .cal-nav { background: none; border: none; color: var(--brown-main); cursor: pointer; font-size: 18px; padding: 0 4px; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
+    .cal-day-name { text-align: center; font-size: 10px; color: var(--text-hint); font-weight: 500; padding: 5px 0; }
+    .cal-day {
+      text-align: center; font-size: 12px; padding: 7px 2px;
+      border-radius: 6px; cursor: pointer; color: var(--text-main);
+      position: relative; transition: background 0.12s;
+    }
+    .cal-day:hover { background: #f5ede5; }
+    .cal-day.today { background: var(--brown-main); color: #fff; font-weight: 500; }
+    .cal-day.selected { background: #fdf3e8; color: var(--brown-mid); font-weight: 500; outline: 2px solid var(--brown-light); }
+    .cal-day.has-cita::after {
+      content: ''; position: absolute; bottom: 3px; left: 50%;
+      transform: translateX(-50%); width: 5px; height: 5px;
+      border-radius: 50%; background: var(--brown-light);
+    }
+    .cal-day.today.has-cita::after { background: rgba(255,255,255,0.7); }
+    .cal-day.empty { pointer-events: none; color: transparent; }
+    .legend { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
+    .legend-title { font-size: 10px; color: var(--text-hint); letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 9px; font-size: 12px; color: #7a6558; margin-bottom: 7px; }
+    .legend-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+    /* Citas list */
+    .citas-panel { flex: 1; padding: 24px 28px; overflow-y: auto; background: var(--cream); }
+    .day-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--text-main); margin-bottom: 4px; }
+    .day-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; }
+    .cita-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px 20px; margin-bottom: 12px;
+      display: flex; align-items: center; gap: 18px;
+      cursor: pointer; transition: box-shadow 0.15s;
+    }
+    .cita-card:hover { box-shadow: 0 4px 16px rgba(160,120,80,0.13); }
+    .cita-time { text-align: center; flex-shrink: 0; width: 54px; }
+    .cita-time .hour { font-size: 18px; font-weight: 500; color: var(--text-main); line-height: 1; }
+    .cita-time .period { font-size: 10px; color: var(--text-hint); margin-top: 2px; }
+    .cita-div { width: 1px; height: 48px; background: var(--border); flex-shrink: 0; }
+    .cita-info { flex: 1; }
+    .cita-name { font-size: 14px; font-weight: 500; color: var(--text-main); }
+    .cita-service { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+    .cita-notas { font-size: 11px; color: #b8a898; margin-top: 4px; font-style: italic; }
+    .cita-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .cita-btn {
+      padding: 7px 13px; border-radius: 6px; font-size: 12px;
+      border: 1.5px solid var(--border); background: transparent;
+      color: var(--brown-mid); cursor: pointer; font-family: 'DM Sans', sans-serif;
+      transition: all 0.12s;
+    }
+    .cita-btn:hover { border-color: var(--brown-main); color: var(--brown-main); }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-hint); }
+    .empty-state .es-icon { font-size: 40px; margin-bottom: 14px; }
+    .empty-state p { font-size: 14px; }
+
+    /* Modal Agendar */
+    .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+    .method-row { display: flex; gap: 10px; }
+    .method-btn {
+      flex: 1; padding: 10px; border: 1.5px solid #e8ddd5;
+      border-radius: 7px; text-align: center; font-size: 12px;
+      cursor: pointer; color: #7a6558; background: #fdf9f6;
+      transition: all 0.12s; font-family: 'DM Sans', sans-serif;
+    }
+    .method-btn.sel { border-color: var(--brown-main); background: #fdf3e8; color: var(--brown-mid); font-weight: 500; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h2>Moon<br>Gest</h2><p>SISTEMA DE GESTIÓN</p></div>
+    <nav class="nav">
+      <a class="nav-item active" href="citas.html"><span class="nav-icon">📅</span> Gestionar Citas</a>
+      <a class="nav-item" href="clientas.html"><span class="nav-icon">👤</span> Clientas</a>
+      <a class="nav-item" href="pagos.html"><span class="nav-icon">💳</span> Pagos</a>
+      <a class="nav-item" href="reportes.html"><span class="nav-icon">📊</span> Reportes</a>
+      <a class="nav-item" href="notificaciones.html"><span class="nav-icon">🔔</span> Notificaciones</a>
+      <a class="nav-item" href="catalogo.html"><span class="nav-icon">✂️</span> Catálogo</a>
+    </nav>
+    <div class="sidebar-footer">
+      <span>Encargada · v2.0</span>
+      <button class="btn-cerrar-sesion" onclick="window.location.href='index.html'">↩ Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <h1>Gestionar Citas</h1>
+      <div class="topbar-actions">
+        <button class="btn btn-outline btn-sm">Ver semana</button>
+        <button class="btn btn-primary btn-sm" onclick="abrirModal('modal-agendar')">+ Agendar Cita</button>
+      </div>
+    </div>
+    <div class="content">
+      <!-- Calendario -->
+      <div class="cal-panel">
+        <div class="cal-header">
+          <button class="cal-nav">‹</button>
+          <span id="cal-mes">Marzo 2026</span>
+          <button class="cal-nav">›</button>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+        <div class="legend">
+          <div class="legend-title">Estado de pago</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#fdecea;border:1.5px solid #e8a898"></div> Sin anticipo</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#fef3e2;border:1.5px solid #e8c87c"></div> Anticipo registrado</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#e8f5ee;border:1.5px solid #7ecba0"></div> Pagado completamente</div>
+        </div>
+      </div>
+
+      <!-- Lista citas -->
+      <div class="citas-panel">
+        <div class="day-title" id="day-title">Domingo 15 de marzo</div>
+        <div class="day-sub" id="day-sub">3 citas agendadas</div>
+        <div id="citas-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AGENDAR CITA -->
+<div class="modal-overlay" id="modal-agendar">
+  <div class="modal-box" style="max-width:540px">
+    <div class="modal-title">Agendar Cita</div>
+    <div class="modal-sub">Completa los datos para registrar la nueva cita</div>
+    <div class="field">
+      <label>Buscar clienta</label>
+      <input type="text" id="buscar-clienta" placeholder="Nombre o teléfono..." oninput="filtrarClientas(this.value)">
+      <div id="clientas-dropdown" style="display:none; background:#fff; border:1.5px solid #e8ddd5; border-radius:8px; margin-top:4px; overflow:hidden;"></div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Servicio</label>
+        <select id="sel-servicio">
+          <option value="">Seleccionar servicio...</option>
+          <option value="Extensión clásica|75">Extensión clásica (75 min)</option>
+          <option value="Volumen ruso|90">Volumen ruso (90 min)</option>
+          <option value="Retoque de pestañas|45">Retoque (45 min)</option>
+          <option value="Diseño de cejas|30">Diseño de cejas (30 min)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Duración</label>
+        <input type="text" id="duracion-display" placeholder="Se calcula automático" readonly style="background:#f0ebe5;color:#9e8878">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Fecha</label>
+        <input type="date" id="fecha-cita">
+      </div>
+      <div class="field">
+        <label>Hora</label>
+        <select id="hora-cita">
+          <option>9:00 AM</option><option>9:30 AM</option><option>10:00 AM</option>
+          <option>10:30 AM</option><option>11:00 AM</option><option>11:30 AM</option>
+          <option>12:00 PM</option><option>12:30 PM</option><option>1:00 PM</option>
+          <option>2:00 PM</option><option>3:00 PM</option><option>4:00 PM</option>
+          <option>5:00 PM</option><option>6:00 PM</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Notas especiales (opcional)</label>
+      <textarea placeholder="Indicaciones, peticiones especiales, alergias a considerar..."></textarea>
+    </div>
+    <div id="modal-agendar-error" class="alert alert-error" style="display:none"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="cerrarModal('modal-agendar')">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmarCita()">Confirmar Cita</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALLE -->
+<div class="modal-overlay" id="modal-detalle">
+  <div class="modal-box">
+    <div class="modal-title" id="det-nombre"></div>
+    <div class="modal-sub" id="det-service"></div>
+    <div class="info-grid" id="det-info"></div>
+    <div id="det-notas" style="margin-bottom:16px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-danger btn-sm" onclick="cerrarModal('modal-detalle')">Cancelar Cita</button>
+      <button class="btn btn-outline btn-sm" onclick="cerrarModal('modal-detalle')">Reprogramar</button>
+      <button class="btn btn-primary btn-sm" onclick="cerrarModal('modal-detalle')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const clientasData = [
+    { nombre:'Sofía Martínez', tel:'555-123-4567' },
+    { nombre:'Valentina Reyes', tel:'555-234-5678' },
+    { nombre:'Camila Torres', tel:'555-345-6789' },
+    { nombre:'Andrea López', tel:'555-456-7890' },
+    { nombre:'Mariana García', tel:'555-567-8901' },
+  ];
+
+  const citasData = [
+    { hora:'10:00', period:'AM', nombre:'Sofía Martínez', servicio:'Extensión de pestañas · 75 min', estado:'pagado', notas:'Usar adhesivo sensitivo' },
+    { hora:'12:00', period:'PM', nombre:'Valentina Reyes', servicio:'Retoque de pestañas · 45 min', estado:'anticipo', notas:'' },
+    { hora:'3:00',  period:'PM', nombre:'Camila Torres',  servicio:'Diseño de cejas · 30 min', estado:'sin', notas:'' },
+  ];
+
+  const diasCitas = [1,3,5,7,8,11,14,15,17,19,22,25,27,31];
+  const diasSemana = ['L','M','M','J','V','S','D'];
+
+  function buildCalendar() {
+    const grid = document.getElementById('cal-grid');
+    grid.innerHTML = diasSemana.map(d=>`<div class="cal-day-name">${d}</div>`).join('');
+    // Marzo 2026 empieza en domingo (offset 6 en L-D)
+    for(let i=0;i<6;i++) grid.innerHTML += `<div class="cal-day empty"></div>`;
+    for(let d=1;d<=31;d++){
+      const hasCita = diasCitas.includes(d);
+      const isToday = d===15;
+      let cls = 'cal-day';
+      if(isToday) cls += ' today';
+      if(hasCita) cls += ' has-cita';
+      grid.innerHTML += `<div class="${cls}" onclick="selectDay(${d})">${d}</div>`;
+    }
+  }
+
+  function selectDay(d) {
+    document.querySelectorAll('.cal-day').forEach(el=>el.classList.remove('selected'));
+    event.target.classList.add('selected');
+  }
+
+  function renderCitas() {
+    const list = document.getElementById('citas-list');
+    if(citasData.length === 0){
+      list.innerHTML = `<div class="empty-state"><div class="es-icon">📭</div><p>No hay citas agendadas para este día.</p></div>`;
+      return;
+    }
+    list.innerHTML = citasData.map((c,i) => `
+      <div class="cita-card" onclick="verDetalle(${i})">
+        <div class="cita-time"><div class="hour">${c.hora}</div><div class="period">${c.period}</div></div>
+        <div class="cita-div"></div>
+        <div class="cita-info">
+          <div class="cita-name">${c.nombre}</div>
+          <div class="cita-service">${c.servicio}</div>
+          ${c.notas ? `<div class="cita-notas">⚠️ ${c.notas}</div>`:''}
+        </div>
+        <span class="badge badge-${c.estado}">${c.estado==='pagado'?'Pagado ✓':c.estado==='anticipo'?'Anticipo $100':'Sin anticipo'}</span>
+        <div class="cita-actions">
+          <button class="cita-btn" onclick="event.stopPropagation()">Reprogramar</button>
+          <button class="cita-btn" onclick="event.stopPropagation()">Cancelar</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function verDetalle(i) {
+    const c = citasData[i];
+    document.getElementById('det-nombre').textContent = c.nombre;
+    document.getElementById('det-service').textContent = c.servicio + ' · 15 mar 2026';
+    document.getElementById('det-info').innerHTML = `
+      <div class="info-box"><div class="ib-label">Hora</div><div class="ib-value">${c.hora} ${c.period}</div></div>
+      <div class="info-box"><div class="ib-label">Estado de pago</div><div class="ib-value">${c.estado==='pagado'?'Pagado ✓':c.estado==='anticipo'?'Anticipo registrado':'Sin anticipo'}</div></div>`;
+    document.getElementById('det-notas').innerHTML = c.notas ? `<div class="alert alert-warning">⚠️ ${c.notas}</div>` : '';
+    abrirModal('modal-detalle');
+  }
+
+  function filtrarClientas(q) {
+    const dd = document.getElementById('clientas-dropdown');
+    if(!q){ dd.style.display='none'; return; }
+    const res = clientasData.filter(c=>c.nombre.toLowerCase().includes(q.toLowerCase())||c.tel.includes(q));
+    if(!res.length){ dd.style.display='none'; return; }
+    dd.style.display='block';
+    dd.innerHTML = res.map(c=>`<div onclick="selClienta('${c.nombre}')" style="padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #f5ede5" onmouseover="this.style.background='#fdf9f6'" onmouseout="this.style.background=''">${c.nombre} <span style="color:#b8a898;font-size:11px">· ${c.tel}</span></div>`).join('');
+  }
+
+  function selClienta(nombre) {
+    document.getElementById('buscar-clienta').value = nombre;
+    document.getElementById('clientas-dropdown').style.display='none';
+  }
+
+  document.getElementById('sel-servicio').addEventListener('change', function(){
+    const parts = this.value.split('|');
+    document.getElementById('duracion-display').value = parts[1] ? parts[1] + ' minutos' : '';
+  });
+
+  // Fecha min = hoy
+  document.getElementById('fecha-cita').min = new Date().toISOString().split('T')[0];
+
+  function confirmarCita(){
+    const clienta = document.getElementById('buscar-clienta').value;
+    const servicio = document.getElementById('sel-servicio').value;
+    const fecha = document.getElementById('fecha-cita').value;
+    const errEl = document.getElementById('modal-agendar-error');
+    if(!clienta||!servicio||!fecha){
+      errEl.style.display='flex';
+      errEl.textContent='⚠️ Completa todos los campos obligatorios: Clienta, Servicio y Fecha.';
+      return;
+    }
+    errEl.style.display='none';
+    cerrarModal('modal-agendar');
+    alert('✅ Cita registrada exitosamente para ' + clienta);
+  }
+
+  function abrirModal(id){ document.getElementById(id).classList.add('open'); }
+  function cerrarModal(id){ document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); }));
+
+  buildCalendar();
+  renderCitas();
+</script>
+</body>
+</html>
