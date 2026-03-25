@@ -361,7 +361,7 @@ body {
 
       // Credencial demo
       if (usuario === 'encargada' && contrasena === '1234') {
-        window.location.href = 'citas.html';
+        window.location.href = '/frontend/citas/citas.html';
         return;
       }
 
@@ -461,7 +461,7 @@ body {
     clearInterval(_countdownInterval);
     _warningVisible = false;
     document.getElementById('session-overlay').classList.remove('open');
-    window.location.href = 'index.html?sesion=expirada';
+    window.location.href = '/frontend/usuarios/index.html?sesion=expirada';
   }
 
   // Reiniciar timers ante cualquier interacción del usuario
